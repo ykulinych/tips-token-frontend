@@ -28,8 +28,11 @@ const App: React.FC = () => {
             onTabChange={setActiveTab}
             tabs={tabItems}
           />
-          {activeTab === "balance" && <BalanceTab />}
-          {activeTab === "transfer" && <TransferTab />}
+
+          <div className="mt-4 w-full max-w-6xl bg-zinc-100 rounded-xl">
+            {activeTab === "balance" && <BalanceTab />}
+            {activeTab === "transfer" && <TransferTab />}
+          </div>
         </div>
       )}
     </div>
