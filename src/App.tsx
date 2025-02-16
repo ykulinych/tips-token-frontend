@@ -1,10 +1,17 @@
 import React from "react";
+import { SolanaProvider } from "./components/solana/SolanaProvider";
+import Navbar from "./components/Navbar";
 
 const App: React.FC = () => {
   return (
-    <>
-      <h1 className="text-3xl font-bold underline">TipsToken</h1>
-    </>
+    <SolanaProvider>
+      <div className="h-full flex flex-col">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center">
+          TODO: tabs
+        </div>
+      </div>
+    </SolanaProvider>
   );
 };
 
