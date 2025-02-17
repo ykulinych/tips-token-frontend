@@ -3,7 +3,6 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import {
   LAMPORTS_PER_SOL,
   PublicKey,
-  sendAndConfirmTransaction,
   SystemProgram,
   Transaction,
 } from "@solana/web3.js";
@@ -17,6 +16,13 @@ import {
   updateQuery,
 } from "../../features/main";
 import { TransactionType } from "../../types/Transaction";
+import * as anchor from "@coral-xyz/anchor";
+import {
+  getAssociatedTokenAddress,
+  getMint,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
+import idl from "../../../../tips-token/target/idl/tipstoken.json"; // @note: same problem with path on backend
 
 import TransactionList from "../TransactionList";
 
@@ -62,6 +68,44 @@ const TransferTab: React.FC = () => {
     await wallet.sendTransaction(tx, connection);
   };
 
+  const transferSplToken = async (amount: number, recipient: string) => {
+    const provider = new anchor.AnchorProvider(
+      connection,
+      wallet as unknown as anchor.Wallet,
+      {
+        preflightCommitment: "processed",
+      }
+    );
+    const program = new anchor.Program(idl as anchor.Idl, provider);
+    const tokenMint = new PublicKey(import.meta.env.VITE_TIPS_TOKEN_MINT);
+    const { decimals } = await getMint(connection, tokenMint);
+
+    // todo: move to shared
+    const amountDecimalBN = new anchor.BN(amount).mul(
+      new anchor.BN(10).pow(new anchor.BN(decimals))
+    );
+
+    const fromTokenAccount = await getAssociatedTokenAddress(
+      tokenMint,
+      wallet.publicKey!
+    );
+    const recipientPubKey = new PublicKey(recipient);
+    const toTokenAccount = await getAssociatedTokenAddress(
+      tokenMint,
+      recipientPubKey
+    );
+
+    await program.methods
+      .transfer(amountDecimalBN)
+      .accounts({
+        from: fromTokenAccount,
+        to: toTokenAccount,
+        authority: provider.wallet.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .rpc();
+  };
+
   const handleSubmit = async (
     values: typeof initialValues,
     { setSubmitting }: FormikHelpers<typeof initialValues>
@@ -71,7 +115,7 @@ const TransferTab: React.FC = () => {
       if (token === "sol") {
         await transferSol(amount, recipient);
       } else {
-        // todo: impement spl transaction
+        await transferSplToken(amount, recipient);
       }
 
       await dispatch(
