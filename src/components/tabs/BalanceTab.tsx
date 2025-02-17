@@ -1,26 +1,36 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+
 import { useAppDispatch, useAppSelector } from "../../hooks/redux";
 import { TransactionType } from "../../types/Transaction";
 import {
   airdrop,
   selectBalance,
   selectTransactions,
+  updateBalance,
   updateQuery,
 } from "../../features/main";
 
 import TransactionList from "../TransactionList";
 
 const BalanceTab: React.FC = () => {
-  const wallet = useWallet();
+  const { publicKey } = useWallet();
   const walletAddress = useMemo(() => {
-    return wallet.publicKey!.toBase58();
-  }, [wallet.publicKey]);
+    return publicKey!.toBase58();
+  }, [publicKey]);
   const dispatch = useAppDispatch();
+  const { connection } = useConnection();
 
   const balance = useAppSelector(selectBalance);
   const transactions = useAppSelector(selectTransactions);
   const [loadingAirdrop, setLoadingAirdrop] = useState<boolean>(false);
+
+  const fetchAndUpdateSolBalance = async () => {
+    const lamports = await connection.getBalance(publicKey!);
+    const sol = lamports / LAMPORTS_PER_SOL;
+    dispatch(updateBalance({ sol }));
+  };
 
   useEffect(() => {
     dispatch(
@@ -29,6 +39,7 @@ const BalanceTab: React.FC = () => {
         type: TransactionType.AIRDROP,
       })
     );
+    fetchAndUpdateSolBalance();
 
     return () => {
       dispatch(updateQuery(null));
