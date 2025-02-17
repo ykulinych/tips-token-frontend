@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
-
+import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { useAppDispatch, useAppSelector } from "../../hooks/redux";
 import { TransactionType } from "../../types/Transaction";
 import {
@@ -32,6 +31,19 @@ const BalanceTab: React.FC = () => {
     dispatch(updateBalance({ sol }));
   };
 
+  const fetchAndUpdateTipstokenBalace = async () => {
+    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
+      publicKey!,
+      {
+        mint: new PublicKey(import.meta.env.VITE_TIPS_TOKEN_MINT),
+      }
+    );
+
+    const tokenAccountInfo = tokenAccounts.value[0].account.data.parsed.info;
+    const uiAmount = tokenAccountInfo.tokenAmount.uiAmount;
+    dispatch(updateBalance({ tipsToken: uiAmount || 0 }));
+  };
+
   useEffect(() => {
     dispatch(
       updateQuery({
@@ -40,6 +52,7 @@ const BalanceTab: React.FC = () => {
       })
     );
     fetchAndUpdateSolBalance();
+    fetchAndUpdateTipstokenBalace();
 
     return () => {
       dispatch(updateQuery(null));
@@ -50,7 +63,7 @@ const BalanceTab: React.FC = () => {
     try {
       setLoadingAirdrop(true);
       await dispatch(airdrop({ recipientAddress: walletAddress })).unwrap();
-      // todo: fetch balance after successful airdrop
+      await fetchAndUpdateTipstokenBalace();
     } catch (error) {
       // todo: hanbdle error
       console.log(error);
