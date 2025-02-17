@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { useAppDispatch, useAppSelector } from "./hooks/redux";
+import { fetchTransactions, selectQuery } from "./features/main";
 
 import Navbar from "./components/Navbar";
 import Tabs, { Tab } from "./components/tabs/Tabs";
@@ -9,6 +11,7 @@ import TransferTab from "./components/tabs/TransferTab";
 type TabKey = "balance" | "transfer";
 
 const App: React.FC = () => {
+  const dispatch = useAppDispatch();
   const wallet = useWallet();
   const [activeTab, setActiveTab] = useState<TabKey>("balance");
 
@@ -16,6 +19,12 @@ const App: React.FC = () => {
     { key: "balance", label: "Balance" },
     { key: "transfer", label: "Transfer" },
   ];
+
+  const query = useAppSelector(selectQuery);
+
+  useEffect(() => {
+    dispatch(fetchTransactions());
+  }, [dispatch, query]);
 
   return (
     <div className="h-full flex flex-col">
