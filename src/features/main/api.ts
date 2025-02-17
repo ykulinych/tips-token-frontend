@@ -18,7 +18,7 @@ export const getTransactions = async (
   return response.data;
 };
 
-export const airdrop = async (body: AirdropDto): Promise<{ tx: string }> => {
+export const airdrop = async (body: AirdropDto): Promise<Transaction> => {
   const response = await api.post("/tips-token/airdrop", body);
   return response.data;
 };

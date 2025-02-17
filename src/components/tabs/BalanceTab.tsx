@@ -35,11 +35,11 @@ const BalanceTab: React.FC = () => {
     };
   }, []);
 
-  const handleAirdrop = () => {
+  const handleAirdrop = async () => {
     try {
       setLoadingAirdrop(true);
-      dispatch(airdrop({ recipientAddress: walletAddress })).unwrap();
-      // todo: update backend airdrop endpoint. needed amount & transaction
+      await dispatch(airdrop({ recipientAddress: walletAddress })).unwrap();
+      // todo: fetch balance after successful airdrop
     } catch (error) {
       // todo: hanbdle error
       console.log(error);

@@ -103,9 +103,9 @@ export const mainSlice = createSlice({
       .addCase(airdrop.pending, (state) => {
         state.status = "loading";
       })
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      .addCase(airdrop.fulfilled, (state, _action) => {
+      .addCase(airdrop.fulfilled, (state, action) => {
         state.status = "succeeded";
+        state.transactions.unshift(action.payload);
       })
       .addCase(airdrop.rejected, (state) => {
         state.status = "failed";
