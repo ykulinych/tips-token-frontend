@@ -1,5 +1,12 @@
 import React, { useEffect, useMemo } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import {
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  sendAndConfirmTransaction,
+  SystemProgram,
+  Transaction,
+} from "@solana/web3.js";
 import { Form, Formik, FormikHelpers } from "formik";
 import { CreateTransactionSchema } from "../../schemas/transfer";
 import { tokenOptions } from "../../utils/options";
@@ -19,6 +26,7 @@ const TransferTab: React.FC = () => {
     return wallet.publicKey!.toBase58();
   }, [wallet.publicKey]);
   const dispatch = useAppDispatch();
+  const { connection } = useConnection();
 
   const transactions = useAppSelector(selectTransactions);
 
@@ -41,14 +49,31 @@ const TransferTab: React.FC = () => {
     token: tokenOptions[0].value,
   };
 
+  const transferSol = async (amount: number, recipient: string) => {
+    const lamports = amount * LAMPORTS_PER_SOL;
+    const tx = new Transaction().add(
+      SystemProgram.transfer({
+        fromPubkey: wallet.publicKey!,
+        toPubkey: new PublicKey(recipient),
+        lamports,
+      })
+    );
+
+    await wallet.sendTransaction(tx, connection);
+  };
+
   const handleSubmit = async (
     values: typeof initialValues,
     { setSubmitting }: FormikHelpers<typeof initialValues>
   ) => {
     const { recipient, amount, token } = values;
     try {
-      console.log(values);
-      // todo: impement transaction
+      if (token === "sol") {
+        await transferSol(amount, recipient);
+      } else {
+        // todo: impement spl transaction
+      }
+
       await dispatch(
         saveTransaction({ sender: walletAddress, recipient, amount, token })
       ).unwrap();
@@ -59,6 +84,7 @@ const TransferTab: React.FC = () => {
       setSubmitting(false);
     }
   };
+
   return (
     <>
       <Formik
