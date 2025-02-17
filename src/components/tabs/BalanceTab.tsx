@@ -10,6 +10,7 @@ import {
   updateBalance,
   updateQuery,
 } from "../../features/main";
+import toast from "react-hot-toast";
 
 import TransactionList from "../TransactionList";
 
@@ -69,11 +70,17 @@ const BalanceTab: React.FC = () => {
   const handleAirdrop = async () => {
     try {
       setLoadingAirdrop(true);
-      await dispatch(airdrop({ recipientAddress: walletAddress })).unwrap();
+      const airdropPromise = dispatch(
+        airdrop({ recipientAddress: walletAddress })
+      ).unwrap();
+      await toast.promise(airdropPromise, {
+        loading: "Airdrop...",
+        success: "Airdrop was successful!",
+        error: "Error when performing airdrop",
+      });
       await fetchAndUpdateTipstokenBalace();
-    } catch (error) {
-      // todo: hanbdle error
-      console.log(error);
+    } catch {
+      toast.error("Error when performing airdrop");
     } finally {
       setLoadingAirdrop(false);
     }
@@ -104,7 +111,7 @@ const BalanceTab: React.FC = () => {
           disabled={loadingAirdrop}
           className="w-full py-2 bg-violet-700 text-white rounded hover:bg-violet-600 transition-colors disabled:opacity-50 cursor-pointer"
         >
-          {loadingAirdrop ? "Airdrop in progress..." : "Tips Airdrop"}
+          Tips Airdrop
         </button>
       </div>
 

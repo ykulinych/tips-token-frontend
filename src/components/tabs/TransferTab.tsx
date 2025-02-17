@@ -23,6 +23,7 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import idl from "../../../../tips-token/target/idl/tipstoken.json"; // @note: same problem with path on backend
+import toast from "react-hot-toast";
 
 import TransactionList from "../TransactionList";
 
@@ -113,17 +114,25 @@ const TransferTab: React.FC = () => {
     const { recipient, amount, token } = values;
     try {
       if (token === "sol") {
-        await transferSol(amount, recipient);
+        await toast.promise(transferSol(amount, recipient), {
+          loading: "Transferring SOL...",
+          success: "SOL transferred successfully!",
+          error: "Failed to transfer SOL.",
+        });
       } else {
-        await transferSplToken(amount, recipient);
+        await toast.promise(transferSplToken(amount, recipient), {
+          loading: "Transferring SPL Token...",
+          success: "SPL Token transferred successfully!",
+          error: "Failed to transfer SPL Token.",
+        });
       }
 
       await dispatch(
         saveTransaction({ sender: walletAddress, recipient, amount, token })
       ).unwrap();
-    } catch (error) {
-      // todo: handle error
-      console.log(error);
+      toast.success("Transaction saved successfully!");
+    } catch {
+      toast.error("Error when performing transfer");
     } finally {
       setSubmitting(false);
     }

@@ -5,11 +5,13 @@ import { Provider } from "react-redux";
 import store from "./store";
 import { SolanaProvider } from "./components/solana/SolanaProvider.tsx";
 import App from "./App.tsx";
+import { Toaster } from "react-hot-toast";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Provider store={store}>
       <SolanaProvider>
+        <Toaster />
         <App />
       </SolanaProvider>
     </Provider>
