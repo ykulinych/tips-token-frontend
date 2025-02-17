@@ -1,31 +1,39 @@
-import React from "react";
+import React, { useEffect, useMemo } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { Form, Formik, FormikHelpers } from "formik";
 import { CreateTransactionSchema } from "../../schemas/transfer";
 import { tokenOptions } from "../../utils/options";
-import { Transaction, TransactionType } from "../../types/Transaction";
+import { useAppDispatch, useAppSelector } from "../../hooks/redux";
+import {
+  saveTransaction,
+  selectTransactions,
+  updateQuery,
+} from "../../features/main";
+import { TransactionType } from "../../types/Transaction";
+
 import TransactionList from "../TransactionList";
 
 const TransferTab: React.FC = () => {
-  const mockTransactions: Transaction[] = [
-    {
-      id: "1",
-      type: TransactionType.TRANSFER,
-      sender: "fake-sender",
-      recipient: "fake-recipient",
-      amount: 50,
-      token: "tips-token",
-      createdAt: new Date("2024-02-15T15:15:15"),
-    },
-    {
-      id: "2",
-      type: TransactionType.TRANSFER,
-      sender: "fake-sender",
-      recipient: "fake-recipient",
-      amount: 50,
-      token: "sol",
-      createdAt: new Date("2024-02-15T14:14:14"),
-    },
-  ];
+  const wallet = useWallet();
+  const walletAddress = useMemo(() => {
+    return wallet.publicKey!.toBase58();
+  }, [wallet.publicKey]);
+  const dispatch = useAppDispatch();
+
+  const transactions = useAppSelector(selectTransactions);
+
+  useEffect(() => {
+    dispatch(
+      updateQuery({
+        wallet: walletAddress,
+        type: TransactionType.TRANSFER,
+      })
+    );
+
+    return () => {
+      dispatch(updateQuery(null));
+    };
+  }, []);
 
   const initialValues = {
     recipient: "",
@@ -37,10 +45,13 @@ const TransferTab: React.FC = () => {
     values: typeof initialValues,
     { setSubmitting }: FormikHelpers<typeof initialValues>
   ) => {
+    const { recipient, amount, token } = values;
     try {
       console.log(values);
       // todo: impement transaction
-      // todo: impement request to backend
+      await dispatch(
+        saveTransaction({ sender: walletAddress, recipient, amount, token })
+      ).unwrap();
     } catch (error) {
       // todo: handle error
       console.log(error);
@@ -131,7 +142,7 @@ const TransferTab: React.FC = () => {
         <h3 className="text-lg font-bold mb-2 text-center">
           Transaction History
         </h3>
-        <TransactionList transactions={mockTransactions} />
+        <TransactionList transactions={transactions} />
       </div>
     </>
   );
