@@ -1,8 +1,10 @@
 import { configureStore } from "@reduxjs/toolkit";
+import mainReducer from "../features/main";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const store = configureStore({
-  reducer: {},
+  reducer: {
+    main: mainReducer,
+  },
 });
 
 export type RootState = ReturnType<typeof store.getState>;
