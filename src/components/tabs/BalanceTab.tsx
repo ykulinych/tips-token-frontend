@@ -45,14 +45,21 @@ const BalanceTab: React.FC = () => {
   };
 
   useEffect(() => {
+    fetchAndUpdateSolBalance();
+    fetchAndUpdateTipstokenBalace();
+
+    return () => {
+      dispatch(updateBalance({ sol: 0, tipsToken: 0 }));
+    };
+  }, [publicKey]);
+
+  useEffect(() => {
     dispatch(
       updateQuery({
         wallet: walletAddress,
         type: TransactionType.AIRDROP,
       })
     );
-    fetchAndUpdateSolBalance();
-    fetchAndUpdateTipstokenBalace();
 
     return () => {
       dispatch(updateQuery(null));
