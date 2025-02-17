@@ -2,8 +2,31 @@ import React from "react";
 import { Form, Formik, FormikHelpers } from "formik";
 import { CreateTransactionSchema } from "../../schemas/transfer";
 import { tokenOptions } from "../../utils/options";
+import { Transaction, TransactionType } from "../../types/Transaction";
+import TransactionList from "../TransactionList";
 
 const TransferTab: React.FC = () => {
+  const mockTransactions: Transaction[] = [
+    {
+      id: "1",
+      type: TransactionType.TRANSFER,
+      sender: "fake-sender",
+      recipient: "fake-recipient",
+      amount: 50,
+      token: "tips-token",
+      createdAt: new Date("2024-02-15T15:15:15"),
+    },
+    {
+      id: "2",
+      type: TransactionType.TRANSFER,
+      sender: "fake-sender",
+      recipient: "fake-recipient",
+      amount: 50,
+      token: "sol",
+      createdAt: new Date("2024-02-15T14:14:14"),
+    },
+  ];
+
   const initialValues = {
     recipient: "",
     amount: 0,
@@ -104,11 +127,11 @@ const TransferTab: React.FC = () => {
 
       <hr className="h-px my-6 bg-gray-200 border-0 dark:bg-gray-700" />
 
-      <div className="w-full">
+      <div className="w-full px-8">
         <h3 className="text-lg font-bold mb-2 text-center">
           Transaction History
         </h3>
-        TODO: airdrop/transaction history component
+        <TransactionList transactions={mockTransactions} />
       </div>
     </>
   );

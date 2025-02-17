@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { Transaction, TransactionType } from "../../types/Transaction";
+import TransactionList from "../TransactionList";
 
 const BalanceTab: React.FC = () => {
   const [solBalance, setSolBalance] = useState<number>(1.234);
@@ -14,6 +16,27 @@ const BalanceTab: React.FC = () => {
       setLoadingAirdrop(false);
     }, 1000);
   };
+
+  const mockTransactions: Transaction[] = [
+    {
+      id: "1",
+      type: TransactionType.AIRDROP,
+      sender: "fake-sender",
+      recipient: "fake-recipient",
+      amount: 50,
+      token: "tips-token",
+      createdAt: new Date("2024-02-15T13:13:13"),
+    },
+    {
+      id: "2",
+      type: TransactionType.AIRDROP,
+      sender: "fake-sender",
+      recipient: "fake-recipient",
+      amount: 50,
+      token: "tips-token",
+      createdAt: new Date("2024-02-15T12:12:12"),
+    },
+  ];
 
   return (
     <>
@@ -44,9 +67,9 @@ const BalanceTab: React.FC = () => {
 
       <hr className="h-px my-6 bg-gray-200 border-0 dark:bg-gray-700" />
 
-      <div className="w-full">
+      <div className="w-full px-8">
         <h3 className="text-lg font-bold mb-2 text-center">Airdrop History</h3>
-        TODO: airdrop/transaction history component
+        <TransactionList transactions={mockTransactions} />
       </div>
     </>
   );
