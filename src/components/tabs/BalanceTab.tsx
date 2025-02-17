@@ -1,56 +1,68 @@
-import React, { useState } from "react";
-import { Transaction, TransactionType } from "../../types/Transaction";
+import React, { useEffect, useMemo, useState } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useAppDispatch, useAppSelector } from "../../hooks/redux";
+import { TransactionType } from "../../types/Transaction";
+import {
+  airdrop,
+  selectBalance,
+  selectTransactions,
+  updateQuery,
+} from "../../features/main";
+
 import TransactionList from "../TransactionList";
 
 const BalanceTab: React.FC = () => {
-  const [solBalance, setSolBalance] = useState<number>(1.234);
-  const [tipsBalance, setTipsBalance] = useState<number>(100);
+  const wallet = useWallet();
+  const walletAddress = useMemo(() => {
+    return wallet.publicKey!.toBase58();
+  }, [wallet.publicKey]);
+  const dispatch = useAppDispatch();
+
+  const balance = useAppSelector(selectBalance);
+  const transactions = useAppSelector(selectTransactions);
   const [loadingAirdrop, setLoadingAirdrop] = useState<boolean>(false);
 
-  // @note: mocked
-  const handleAirdrop = () => {
-    // todo: impement request to backend
-    setLoadingAirdrop(true);
-    setTimeout(() => {
-      setTipsBalance((prev) => prev + 50);
-      setLoadingAirdrop(false);
-    }, 1000);
-  };
+  useEffect(() => {
+    dispatch(
+      updateQuery({
+        wallet: walletAddress,
+        type: TransactionType.AIRDROP,
+      })
+    );
 
-  const mockTransactions: Transaction[] = [
-    {
-      id: "1",
-      type: TransactionType.AIRDROP,
-      sender: "fake-sender",
-      recipient: "fake-recipient",
-      amount: 50,
-      token: "tips-token",
-      createdAt: new Date("2024-02-15T13:13:13"),
-    },
-    {
-      id: "2",
-      type: TransactionType.AIRDROP,
-      sender: "fake-sender",
-      recipient: "fake-recipient",
-      amount: 50,
-      token: "tips-token",
-      createdAt: new Date("2024-02-15T12:12:12"),
-    },
-  ];
+    return () => {
+      dispatch(updateQuery(null));
+    };
+  }, []);
+
+  const handleAirdrop = () => {
+    try {
+      setLoadingAirdrop(true);
+      dispatch(airdrop({ recipientAddress: walletAddress })).unwrap();
+      // todo: update backend airdrop endpoint. needed amount & transaction
+    } catch (error) {
+      // todo: hanbdle error
+      console.log(error);
+    } finally {
+      setLoadingAirdrop(false);
+    }
+  };
 
   return (
     <>
       <div className="flex w-full justify-around items-center my-2">
         <div className="text-center">
           <p className="text-2xl">
-            SOL: <span className="font-semibold">{solBalance.toFixed(3)}</span>
+            SOL: <span className="font-semibold">{balance.sol.toFixed(3)}</span>
           </p>
         </div>
 
         <div className="text-center">
           <p className="text-2xl">
             TipsToken:{" "}
-            <span className="font-semibold">{tipsBalance.toFixed(3)}</span>
+            <span className="font-semibold">
+              {balance.tipsToken.toFixed(3)}
+            </span>
           </p>
         </div>
       </div>
@@ -69,7 +81,7 @@ const BalanceTab: React.FC = () => {
 
       <div className="w-full px-8">
         <h3 className="text-lg font-bold mb-2 text-center">Airdrop History</h3>
-        <TransactionList transactions={mockTransactions} />
+        <TransactionList transactions={transactions} />
       </div>
     </>
   );
